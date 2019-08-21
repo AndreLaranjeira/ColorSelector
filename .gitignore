@@ -1,0 +1,10 @@
+# Python build files:
+*__pycache__
+
+# Latex build files:
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+report.log
+report.pdf
