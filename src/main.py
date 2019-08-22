@@ -25,7 +25,7 @@ def highlightInImage(img, color):
     aux_img = np.array(img, dtype=np.int32)
     aux_color = np.array(color, dtype=np.int32)
 
-    # Calculate distance:
+    # Calculate the distance between the image and the color and square it:
     distance = (aux_img - aux_color) ** 2
 
     # Greyscale logic for an image with 3 channels:
@@ -114,11 +114,11 @@ if(args.image is not None and args.video is None and args.webcam == False):
             # Read user input:
             key = cv.waitKey(100) & 0xFF
 
-            # Exit application:
+            # Exit application if ESC is pressed:
             if(key == 27):
                 break
 
-            # Clean image:
+            # Clean image if 'c' is pressed:
             elif(key == ord('c')):
                 cv.imshow("ColorSelector", img)
 
