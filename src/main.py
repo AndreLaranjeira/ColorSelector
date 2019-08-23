@@ -4,6 +4,7 @@
 import argparse
 import cv2 as cv
 import numpy as np
+import sys
 
 # User modules:
 
@@ -18,6 +19,10 @@ parser.add_argument('-w', dest='webcam', action='store_true', default=False,
 args = parser.parse_args()
 
 # Auxiliary functions:
+def configureWindow():
+    cv.namedWindow("ColorSelector")
+    cv.setMouseCallback("ColorSelector", mouseEventHandler)
+
 def highlightInImage(img, color):
     result = np.copy(img)
 
@@ -86,10 +91,6 @@ def printPixelInfo(row, col, color):
 ## Initiate the color variable:
 highlighted_color = []
 
-## Configure the window for display:
-cv.namedWindow("ColorSelector")
-cv.setMouseCallback("ColorSelector", mouseEventHandler)
-
 ## Image:
 if(args.image is not None and args.video is None and args.webcam == False):
 
@@ -99,42 +100,55 @@ if(args.image is not None and args.video is None and args.webcam == False):
     # Check if an image was loaded:
     if(img is None):
         print("Image not found!")
+        sys.exit(2)
 
+    # Determine if the image has color:
+    is_img_greyscale = isImageGreyscale(img.shape)
+
+    # Configure the window the program uses:
+    configureWindow()
+
+    # Show the image:
+    cv.imshow("ColorSelector", img)
+
+    # Main image loop:
+    while(1):
+
+        # Highlight selected color in image:
+        if(highlighted_color):
+            new_img = highlightInImage(img, highlighted_color[0])
+            cv.imshow("ColorSelector", new_img)
+            highlighted_color.clear()
+
+        # Read user input:
+        key = cv.waitKey(100) & 0xFF
+
+        # Exit application if ESC is pressed:
+        if(key == 27):
+            break
+
+        # Clean image if 'c' is pressed:
+        elif(key == ord('c')):
+            cv.imshow("ColorSelector", img)
+
+    # Clean up resources:
+    cv.destroyAllWindows()
+
+## Video (file or webcam):
+elif(args.image is None and ((args.video is not None) ^ (args.webcam == True))):
+
+    # Video file:
+    if(args.video is not None):
+        cap = cv.VideoCapture(args.video)
+
+    # Webcam stream:
+    elif(args.webcam == True):
+        cap = cv.VideoCapture(0)
+
+    # Failsafe that should never trigger:
     else:
-        # Determine if the image has color:
-        is_img_greyscale = isImageGreyscale(img.shape)
-
-        # Show the image:
-        cv.imshow("ColorSelector", img)
-
-        # Main image loop:
-        while(1):
-
-            # Highlight selected color in image:
-            if(highlighted_color):
-                new_img = highlightInImage(img, highlighted_color[0])
-                cv.imshow("ColorSelector", new_img)
-                highlighted_color.clear()
-
-            # Read user input:
-            key = cv.waitKey(100) & 0xFF
-
-            # Exit application if ESC is pressed:
-            if(key == 27):
-                break
-
-            # Clean image if 'c' is pressed:
-            elif(key == ord('c')):
-                cv.imshow("ColorSelector", img)
-
-        # Clean up resources:
-        cv.destroyAllWindows()
-
-## Video:
-elif(args.image is None and args.video is not None and args.webcam == False):
-
-    # Load video:
-    cap = cv.VideoCapture(args.video)
+        print("Invalid program usage! Please use exactly one argument!")
+        sys.exit(1)
 
     # Read one image (frame) from the video capture:
     ret, img = cap.read()
@@ -142,46 +156,45 @@ elif(args.image is None and args.video is not None and args.webcam == False):
     # Check to see if the video was actually opened:
     if(not ret):
         print("Video file not found or corrupted!")
+        sys.exit(2)
 
-    else:
+    # Configure the window the program uses:
+    configureWindow()
 
-        # Main video loop:
-        while(ret == True):
+    # Main video loop:
+    while(ret == True):
 
-            # Determine if the image read has color:
-            is_img_greyscale = isImageGreyscale(img.shape)
+        # Determine if the image read has color:
+        is_img_greyscale = isImageGreyscale(img.shape)
 
-            # If there is a highlighted color, change the image:
-            if(highlighted_color):
-                new_img = highlightInImage(img, highlighted_color[0])
-                cv.imshow("ColorSelector", new_img)
+        # If there is a highlighted color, change the image:
+        if(highlighted_color):
+            new_img = highlightInImage(img, highlighted_color[0])
+            cv.imshow("ColorSelector", new_img)
 
-            # Else, just display the regular image:
-            else:
-                cv.imshow("ColorSelector", img)
+        # Else, just display the regular image:
+        else:
+            cv.imshow("ColorSelector", img)
 
-            # Read user input (33 milisseconds = 30 fps):
-            key = cv.waitKey(33) & 0xFF
+        # Read user input (33 milisseconds = 30 fps):
+        key = cv.waitKey(33) & 0xFF
 
-            # Exit application if ESC is pressed:
-            if(key == 27):
-                break
+        # Exit application if ESC is pressed:
+        if(key == 27):
+            break
 
-            # Clear highlighted color if 'c' is pressed:
-            elif(key == ord('c')):
-                highlighted_color.clear()
+        # Clear highlighted color if 'c' is pressed:
+        elif(key == ord('c')):
+            highlighted_color.clear()
 
-            # Read another image (frame) from the video:
-            ret, img = cap.read()
+        # Read another image (frame) from the video:
+        ret, img = cap.read()
 
-        # Clean up resources:
-        cap.release()
-        cv.destroyAllWindows()
-
-## Webcam:
-elif(args.image is None and args.video is None and args.webcam == True):
-    print("Placeholder for webcam.")
+    # Clean up resources:
+    cap.release()
+    cv.destroyAllWindows()
 
 ## Invalid arguments:
 else:
     print("Invalid program usage! Please use exactly one argument!")
+    sys.exit(1)
