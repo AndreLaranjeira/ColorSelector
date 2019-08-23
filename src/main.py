@@ -56,6 +56,8 @@ def mouseEventHandler(event, x, y, flags, params):
         pixel_row = y
         pixel_col = x
         pixel_color = img[pixel_row, pixel_col]
+
+        # Print pixel info:
         printPixelInfo(row=pixel_row, col=pixel_col, color=pixel_color)
 
         # Add pixel color to highlighted colors:
@@ -81,6 +83,13 @@ def printPixelInfo(row, col, color):
 
 # Main function:
 
+## Initiate the color variable:
+highlighted_color = []
+
+## Configure the window for display:
+cv.namedWindow("ColorSelector")
+cv.setMouseCallback("ColorSelector", mouseEventHandler)
+
 ## Image:
 if(args.image is not None and args.video is None and args.webcam == False):
 
@@ -95,14 +104,10 @@ if(args.image is not None and args.video is None and args.webcam == False):
         # Determine if the image has color:
         is_img_greyscale = isImageGreyscale(img.shape)
 
-        # Configure image window:
+        # Show the image:
         cv.imshow("ColorSelector", img)
-        cv.setMouseCallback("ColorSelector", mouseEventHandler)
 
-        # Initiate the color variable:
-        highlighted_color = []
-
-        # Main event loop:
+        # Main image loop:
         while(1):
 
             # Highlight selected color in image:
@@ -127,7 +132,51 @@ if(args.image is not None and args.video is None and args.webcam == False):
 
 ## Video:
 elif(args.image is None and args.video is not None and args.webcam == False):
-    print("Placeholder for video.")
+
+    # Load video:
+    cap = cv.VideoCapture(args.video)
+
+    # Read one image (frame) from the video capture:
+    ret, img = cap.read()
+
+    # Check to see if the video was actually opened:
+    if(not ret):
+        print("Video file not found or corrupted!")
+
+    else:
+
+        # Main video loop:
+        while(ret == True):
+
+            # Determine if the image read has color:
+            is_img_greyscale = isImageGreyscale(img.shape)
+
+            # If there is a highlighted color, change the image:
+            if(highlighted_color):
+                new_img = highlightInImage(img, highlighted_color[0])
+                cv.imshow("ColorSelector", new_img)
+
+            # Else, just display the regular image:
+            else:
+                cv.imshow("ColorSelector", img)
+
+            # Read user input (33 milisseconds = 30 fps):
+            key = cv.waitKey(33) & 0xFF
+
+            # Exit application if ESC is pressed:
+            if(key == 27):
+                break
+
+            # Clear highlighted color if 'c' is pressed:
+            elif(key == ord('c')):
+                highlighted_color.clear()
+
+            # Read another image (frame) from the video:
+            ret, img = cap.read()
+
+        # Clean up resources:
+        cap.release()
+        cv.destroyAllWindows()
 
 ## Webcam:
 elif(args.image is None and args.video is None and args.webcam == True):
