@@ -8,3 +8,10 @@ Programa para abrir uma imagem, arquivo de vídeo ou entrada de vídeo e colocar
 Nome                           | Matrícula
 ------------------------------ | ----------
 André Filipe Caldas Laranjeira | 16/0023777
+
+## Recursos utilizados
+Para executar o programa, será necessário a instalação dos seguintes recursos:
+* Python 3.7.x
+* Pacote opencv-python 3.4.x
+
+O pacote opencv-python utilizado **não** foi a versão 3.2.x, como recomendado no trabalho, pois essa versão não estava disponível para download utilizando-se o gerenciador de pacotes pip.
